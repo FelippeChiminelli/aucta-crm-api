@@ -3,6 +3,7 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.docs import get_swagger_ui_html, get_redoc_html
+from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.core.config import get_settings
@@ -86,6 +87,12 @@ app.include_router(users.router, prefix="/api/v1", tags=["Usuários"])
 app.include_router(vehicles.router, prefix="/api/v1", tags=["Veículos"])
 app.include_router(tasks.router, prefix="/api/v1", tags=["Tarefas"])
 app.include_router(bookings.router, prefix="/api/v1", tags=["Agendamentos"])
+
+
+@app.get("/", include_in_schema=False)
+async def root():
+    """Redireciona para a documentação."""
+    return RedirectResponse(url="/docs")
 
 
 @app.get("/health", tags=["Sistema"])
