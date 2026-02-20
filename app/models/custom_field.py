@@ -9,7 +9,7 @@ class CustomFieldResponse(BaseModel):
     id: str
     pipeline_id: str | None = None
     name: str
-    type: Literal["text", "number", "date", "select", "multiselect", "link", "vehicle"]
+    type: Literal["text", "number", "date", "select", "multiselect", "link", "vehicle", "product"]
     options: list[str] | None = None
     required: bool
     position: int
