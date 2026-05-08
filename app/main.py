@@ -7,7 +7,17 @@ from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.core.config import get_settings
-from app.routers.v1 import leads, pipelines, custom_fields, users, vehicles, tasks, bookings, chat
+from app.routers.v1 import (
+    leads,
+    pipelines,
+    custom_fields,
+    users,
+    vehicles,
+    tasks,
+    bookings,
+    chat,
+    products,
+)
 
 DESCRIPTION = """
 ## API pública do Aucta CRM
@@ -30,6 +40,7 @@ Gere seu token no painel do CRM em **Configurações > Integrações > API Keys*
 - **Tarefas** — CRUD completo de tarefas, comentários e tipos
 - **Pipelines** — Consultar pipelines e stages (somente leitura)
 - **Veículos** — Consultar estoque de veículos com imagens
+- **Estoque** — CRUD de produtos e serviços, categorias e imagens
 - **Campos Customizados** — Consultar definições e gerenciar valores
 - **Agendamentos** — Agendas, tipos, disponibilidade e CRUD de bookings
 - **Chat** — Conversas, mensagens e instâncias WhatsApp
@@ -86,6 +97,7 @@ app.include_router(pipelines.router, prefix="/api/v1", tags=["Pipelines"])
 app.include_router(custom_fields.router, prefix="/api/v1", tags=["Campos Customizados"])
 app.include_router(users.router, prefix="/api/v1", tags=["Usuários"])
 app.include_router(vehicles.router, prefix="/api/v1", tags=["Veículos"])
+app.include_router(products.router, prefix="/api/v1", tags=["Estoque (Produtos e Serviços)"])
 app.include_router(tasks.router, prefix="/api/v1", tags=["Tarefas"])
 app.include_router(bookings.router, prefix="/api/v1", tags=["Agendamentos"])
 app.include_router(chat.router, prefix="/api/v1", tags=["Chat"])
