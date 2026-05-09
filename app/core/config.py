@@ -17,6 +17,13 @@ class Settings(BaseSettings):
     # CORS
     ALLOWED_ORIGINS: str = "*"
 
+    # Integração WhatsApp via n8n
+    # Webhook responsável por enviar a mensagem pelo WhatsApp e persistir em chat_messages.
+    N8N_WEBHOOK_SEND_MESSAGE_URL: str = (
+        "https://n8n.advcrm.com.br/webhook/msginterna_crm"
+    )
+    N8N_WEBHOOK_TIMEOUT_SECONDS: float = 30.0
+
     @property
     def cors_origins(self) -> list[str]:
         if self.ALLOWED_ORIGINS == "*":
@@ -35,4 +42,6 @@ class Settings(BaseSettings):
 
 @lru_cache()
 def get_settings() -> Settings:
-    return Settings()
+    # Falso positivo do basedpyright: pydantic-settings carrega campos
+    # obrigatórios (SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY) do .env/ambiente.
+    return Settings()  # pyright: ignore[reportCallIssue]

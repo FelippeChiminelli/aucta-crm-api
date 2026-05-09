@@ -6,11 +6,13 @@ from app.models.chat import (
     CreateConversationRequest,
     CreateMessageRequest,
     MessageResponse,
+    SendWhatsappMessageRequest,
+    SendWhatsappMessageResponse,
     UpdateConversationRequest,
     WhatsappInstanceResponse,
 )
 from app.models.common import PaginatedResponse
-from app.services import chat_service
+from app.services import chat_service, whatsapp_send_service
 
 router = APIRouter()
 
@@ -111,6 +113,29 @@ async def update_conversation(
 async def close_conversation(conversation_id: str, empresa_id: EmpresaId):
     """Encerra uma conversa. Define o status como 'closed'."""
     return await chat_service.close_conversation(empresa_id, conversation_id)
+
+
+@router.post(
+    "/chat/conversations/{conversation_id}/send",
+    response_model=SendWhatsappMessageResponse,
+)
+async def send_whatsapp_message(
+    conversation_id: str,
+    data: SendWhatsappMessageRequest,
+    empresa_id: EmpresaId,
+):
+    """
+    Envia uma mensagem (texto ou mídia por URL) via WhatsApp.
+
+    Dispara o webhook n8n configurado em `N8N_WEBHOOK_SEND_MESSAGE_URL`.
+    A persistência em `chat_messages` é feita pelo próprio n8n após o envio.
+
+    - `message_type = 'text'` exige `content`.
+    - Demais tipos exigem `media_url` (URL pública). `content` vira legenda.
+    """
+    return await whatsapp_send_service.send_whatsapp_message(
+        empresa_id, conversation_id, data.model_dump(exclude_none=True, mode="json")
+    )
 
 
 # =====================================================

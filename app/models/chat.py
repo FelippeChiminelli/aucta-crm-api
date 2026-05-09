@@ -1,4 +1,6 @@
-from pydantic import BaseModel, Field
+from typing import Any, Literal
+
+from pydantic import BaseModel, Field, HttpUrl, model_validator
 
 
 # =====================================================
@@ -91,3 +93,65 @@ class CreateMessageRequest(BaseModel):
     media_url: str | None = Field(None, description="URL da mídia (se aplicável)")
     direction: str = Field(..., description="Direção (inbound, outbound)")
     status: str = Field("sent", description="Status (sent, delivered, read, failed)")
+
+
+# =====================================================
+# Envio de mensagem via WhatsApp (webhook n8n)
+# =====================================================
+
+
+WhatsappMessageType = Literal["text", "image", "audio", "video", "document"]
+
+
+class SendWhatsappMessageRequest(BaseModel):
+    """Dados para envio de mensagem via WhatsApp (dispara webhook n8n).
+
+    A persistência em `chat_messages` é feita pelo próprio n8n após o envio.
+    """
+
+    message_type: WhatsappMessageType = Field(
+        "text",
+        description="Tipo da mensagem (text, image, audio, video, document)",
+    )
+    content: str | None = Field(
+        None,
+        description=(
+            "Conteúdo textual: obrigatório para `text`; usado como legenda nos "
+            "demais tipos."
+        ),
+    )
+    media_url: HttpUrl | None = Field(
+        None,
+        description=(
+            "URL pública da mídia. Obrigatório quando `message_type` ≠ `text`."
+        ),
+    )
+
+    @model_validator(mode="after")
+    def _validate_payload(self) -> "SendWhatsappMessageRequest":
+        if self.message_type == "text":
+            if not self.content or not self.content.strip():
+                raise ValueError(
+                    "`content` é obrigatório quando `message_type` = 'text'."
+                )
+        else:
+            if not self.media_url:
+                raise ValueError(
+                    "`media_url` é obrigatório quando `message_type` ≠ 'text'."
+                )
+        return self
+
+
+class SendWhatsappMessageResponse(BaseModel):
+    """Resultado do disparo do webhook n8n."""
+
+    status: Literal["sent", "failed"] = Field(
+        ..., description="Status do envio (sent | failed)"
+    )
+    webhook_response: dict[str, Any] | None = Field(
+        None,
+        description="Resposta bruta retornada pelo webhook n8n (para debugging).",
+    )
+    error: str | None = Field(
+        None, description="Mensagem de erro, quando status = 'failed'."
+    )
