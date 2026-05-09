@@ -17,8 +17,9 @@ class Settings(BaseSettings):
     # CORS
     ALLOWED_ORIGINS: str = "*"
 
-    # Integração WhatsApp via n8n
-    # Webhook responsável por enviar a mensagem pelo WhatsApp e persistir em chat_messages.
+    # Integração WhatsApp
+    # Endpoint do gateway externo responsável por enviar a mensagem pelo
+    # WhatsApp e persistir em chat_messages.
     N8N_WEBHOOK_SEND_MESSAGE_URL: str = (
         "https://n8n.advcrm.com.br/webhook/msginterna_crm"
     )

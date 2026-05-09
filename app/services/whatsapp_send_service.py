@@ -1,4 +1,4 @@
-"""Serviço de integração com o webhook n8n para envio de mensagens WhatsApp.
+"""Serviço de integração com o gateway externo de envio de mensagens WhatsApp.
 
 Mantém a integração externa isolada do CRUD do chat (`chat_service`),
 facilitando evoluções futuras (retry, circuit-breaker, fila assíncrona, etc.).
@@ -28,7 +28,7 @@ def _build_webhook_payload(
     instance_id: str,
     payload: dict[str, Any],
 ) -> dict[str, Any]:
-    """Monta o body enviado ao webhook n8n (mesmo formato do CRM)."""
+    """Monta o body enviado ao gateway de envio (mesmo formato do CRM)."""
     media_url = payload.get("media_url")
     return {
         "action": "send_message",
@@ -43,7 +43,7 @@ def _build_webhook_payload(
 
 
 def _parse_webhook_response(response: httpx.Response) -> dict[str, Any] | None:
-    """Tenta decodificar a resposta do webhook como JSON; senão devolve `None`."""
+    """Tenta decodificar a resposta como JSON; senão devolve `None`."""
     try:
         data = response.json()
     except ValueError:
@@ -56,12 +56,12 @@ async def send_whatsapp_message(
     conversation_id: str,
     payload: dict[str, Any],
 ) -> dict[str, Any]:
-    """Dispara o webhook n8n responsável pelo envio da mensagem.
+    """Encaminha a mensagem para o gateway externo de envio.
 
     Fluxo:
         1. Valida o tenant + carrega a conversa via `chat_service.get_conversation`.
         2. Garante que a conversa tenha `instance_id` vinculado.
-        3. Faz POST no webhook configurado em `N8N_WEBHOOK_SEND_MESSAGE_URL`.
+        3. Faz POST no gateway configurado em `WEBHOOK_SEND_MESSAGE_URL`.
         4. Mapeia erros de timeout (504) e respostas não-2xx (502).
     """
     conversation = await chat_service.get_conversation(empresa_id, conversation_id)
@@ -96,12 +96,12 @@ async def send_whatsapp_message(
     except httpx.TimeoutException as exc:
         raise HTTPException(
             status_code=status.HTTP_504_GATEWAY_TIMEOUT,
-            detail="Timeout ao contatar o webhook do n8n.",
+            detail="Timeout ao contatar o serviço de envio do WhatsApp.",
         ) from exc
     except httpx.HTTPError as exc:
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
-            detail=f"Falha ao contatar o webhook do n8n: {exc}",
+            detail=f"Falha ao contatar o serviço de envio do WhatsApp: {exc}",
         ) from exc
 
     webhook_response = _parse_webhook_response(response)
@@ -110,7 +110,7 @@ async def send_whatsapp_message(
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail={
-                "message": "Webhook n8n respondeu com erro.",
+                "message": "Serviço de envio do WhatsApp respondeu com erro.",
                 "status_code": response.status_code,
                 "webhook_response": webhook_response,
             },

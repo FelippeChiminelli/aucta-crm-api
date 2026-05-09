@@ -127,8 +127,9 @@ async def send_whatsapp_message(
     """
     Envia uma mensagem (texto ou mídia por URL) via WhatsApp.
 
-    Dispara o webhook n8n configurado em `N8N_WEBHOOK_SEND_MESSAGE_URL`.
-    A persistência em `chat_messages` é feita pelo próprio n8n após o envio.
+    Encaminha a mensagem para o serviço de envio configurado em
+    `WEBHOOK_SEND_MESSAGE_URL`. A persistência em `chat_messages` é
+    feita pelo próprio serviço de envio.
 
     - `message_type = 'text'` exige `content`.
     - Demais tipos exigem `media_url` (URL pública). `content` vira legenda.

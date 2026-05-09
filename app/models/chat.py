@@ -96,7 +96,7 @@ class CreateMessageRequest(BaseModel):
 
 
 # =====================================================
-# Envio de mensagem via WhatsApp (webhook n8n)
+# Envio de mensagem via WhatsApp
 # =====================================================
 
 
@@ -104,9 +104,9 @@ WhatsappMessageType = Literal["text", "image", "audio", "video", "document"]
 
 
 class SendWhatsappMessageRequest(BaseModel):
-    """Dados para envio de mensagem via WhatsApp (dispara webhook n8n).
+    """Dados para envio de mensagem via WhatsApp.
 
-    A persistência em `chat_messages` é feita pelo próprio n8n após o envio.
+    A persistência em `chat_messages` é feita pelo próprio serviço de envio.
     """
 
     message_type: WhatsappMessageType = Field(
@@ -143,14 +143,14 @@ class SendWhatsappMessageRequest(BaseModel):
 
 
 class SendWhatsappMessageResponse(BaseModel):
-    """Resultado do disparo do webhook n8n."""
+    """Resultado do envio da mensagem."""
 
     status: Literal["sent", "failed"] = Field(
         ..., description="Status do envio (sent | failed)"
     )
     webhook_response: dict[str, Any] | None = Field(
         None,
-        description="Resposta bruta retornada pelo webhook n8n (para debugging).",
+        description="Resposta bruta retornada pelo serviço de envio (para debugging).",
     )
     error: str | None = Field(
         None, description="Mensagem de erro, quando status = 'failed'."

@@ -43,7 +43,7 @@ Gere seu token no painel do CRM em **Configurações > Integrações > API Keys*
 - **Estoque** — CRUD de produtos e serviços, categorias e imagens
 - **Campos Customizados** — Consultar definições e gerenciar valores
 - **Agendamentos** — Agendas, tipos, disponibilidade e CRUD de bookings
-- **Chat** — Conversas, mensagens, instâncias WhatsApp e envio via webhook n8n
+- **Chat** — Conversas, mensagens, instâncias e envio de mensagens WhatsApp
 - **Usuários** — Listar usuários da empresa (somente leitura)
 """
 
