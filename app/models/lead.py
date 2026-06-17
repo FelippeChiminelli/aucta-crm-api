@@ -67,6 +67,7 @@ class LeadHistoryResponse(BaseModel):
     changed_by: str | None = None
     change_type: str
     notes: str | None = None
+    metadata: dict | None = None
     created_at: str
 
 

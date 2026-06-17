@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, File, Form, Query, UploadFile
 
 from app.core.dependencies import EmpresaId
 from app.models.common import PaginatedResponse, SuccessResponse
@@ -11,7 +11,8 @@ from app.models.lead import (
     MoveStageRequest,
     UpdateLeadRequest,
 )
-from app.services import lead_service
+from app.models.lead_attachment import LeadAttachmentResponse
+from app.services import lead_attachment_service, lead_service
 
 router = APIRouter()
 
@@ -163,3 +164,67 @@ async def reactivate_lead(lead_id: str, empresa_id: EmpresaId):
 async def get_lead_history(lead_id: str, empresa_id: EmpresaId):
     """Retorna o histórico de alterações de pipeline/stage de um lead."""
     return await lead_service.get_lead_history(empresa_id, lead_id)
+
+
+# =====================================================
+# Anexos
+# =====================================================
+
+
+@router.get(
+    "/leads/{lead_id}/attachments",
+    response_model=list[LeadAttachmentResponse],
+)
+async def list_lead_attachments(lead_id: str, empresa_id: EmpresaId):
+    """Lista os anexos de um lead."""
+    await lead_service.get_lead(empresa_id, lead_id)
+    return await lead_attachment_service.list_attachments(empresa_id, lead_id)
+
+
+@router.get(
+    "/leads/{lead_id}/attachments/{attachment_id}",
+    response_model=LeadAttachmentResponse,
+)
+async def get_lead_attachment(
+    lead_id: str, attachment_id: str, empresa_id: EmpresaId
+):
+    """Busca um anexo específico de um lead."""
+    await lead_service.get_lead(empresa_id, lead_id)
+    return await lead_attachment_service.get_attachment(
+        empresa_id, lead_id, attachment_id
+    )
+
+
+@router.post(
+    "/leads/{lead_id}/attachments",
+    response_model=LeadAttachmentResponse,
+    status_code=201,
+)
+async def upload_lead_attachment(
+    lead_id: str,
+    empresa_id: EmpresaId,
+    file: UploadFile = File(..., description="Arquivo a ser anexado (PDF, imagem ou vídeo, máx. 20MB)"),
+    uploaded_by: str = Form(
+        ..., description="UUID do usuário da empresa que realizou o upload"
+    ),
+):
+    """Faz upload de um anexo vinculado ao lead."""
+    await lead_service.get_lead(empresa_id, lead_id)
+    return await lead_attachment_service.upload_attachment(
+        empresa_id, lead_id, file, uploaded_by
+    )
+
+
+@router.delete(
+    "/leads/{lead_id}/attachments/{attachment_id}",
+    response_model=SuccessResponse,
+)
+async def delete_lead_attachment(
+    lead_id: str, attachment_id: str, empresa_id: EmpresaId
+):
+    """Remove um anexo do lead (arquivo no storage e registro no banco)."""
+    await lead_service.get_lead(empresa_id, lead_id)
+    await lead_attachment_service.delete_attachment(
+        empresa_id, lead_id, attachment_id
+    )
+    return SuccessResponse(message="Anexo removido com sucesso")
